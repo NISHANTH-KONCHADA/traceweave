@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import config from '../config/config.js';
 
-const generateToken = (userId, expires, type, secret = process.env.JWT_SECRET || 'thisisasupersecretkey') => {
+const generateToken = (userId, expires, type, secret = process.env.JWT_SECRET) => {
   const payload = {
     sub: userId,
     iat: moment().unix(),
