@@ -15,7 +15,3 @@ services:
       - ./backend/proxy-service:/app
     environment:
       - ENV=development
-
-  mongo:
-    ports:
-      - "27017:27017"
