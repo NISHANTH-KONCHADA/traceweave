@@ -1,0 +1,54 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+
+- checkout: self
+  submodules: true
+
+- task: Bash@3
+  displayName: 'Deploy TraceWeave to VM'
+  inputs:
+    targetType: 'inline'
+    script: |
+
+      echo "Setting up SSH key..."
+      mkdir -p ~/.ssh
+      echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+      chmod 600 ~/.ssh/id_rsa
+
+      ssh -o StrictHostKeyChecking=no azureuser@20.244.41.161 << 'EOF'
+
+        set -e
+
+        APP_DIR="/home/azureuser/traceweave"
+
+        echo "Checking if application directory exists..."
+
+        if [ ! -d "$APP_DIR" ]; then
+          echo "Cloning repository with submodules..."
+          git clone --recurse-submodules https://github.com/NISHANTH-KONCHADA/traceweave.git $APP_DIR
+        fi
+
+        cd $APP_DIR
+
+        echo "Pulling latest changes..."
+        git pull origin main
+
+        echo "Updating submodules..."
+        git submodule update --init --recursive
+
+        echo "Stopping existing containers..."
+        docker-compose down
+
+        echo "Rebuilding and starting containers..."
+        docker-compose up -d --build
+
+        echo "Deployment completed successfully."
+
+      EOF
+  env:
+    SSH_PRIVATE_KEY: $(SSH_PRIVATE_KEY)
